@@ -28,7 +28,7 @@ export const getSeat = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        const seat = await Seat.findById(id);
+        const seat = await Seat.find({vehicle: id});
         res.status(200).json({  
             seat,
         });
