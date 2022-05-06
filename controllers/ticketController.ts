@@ -14,19 +14,24 @@ const moment = extendMoment(Moment as any);
 // @Method POST
 export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) => {
     
-    const { trip, seat, amountPaid, paymentInfo, isPaid } = req.body;
+    const { trip, seat, amountPaid, paymentInfo } = req.body;
 
-    const booking = await Ticket.create({
-        trip,
-        user: req.user._id,
-        seat,
-        amountPaid,
-        paymentInfo,
-        paidAt: isPaid ? Date.now() : "",
-    });
+    let booking = {};
 
-    if (booking) {
-        await Seat.findByIdAndUpdate(seat , {status : true});
+    if (paymentInfo) {
+
+        booking = await Ticket.create({
+            trip,
+            user: req.user._id,
+            seat,
+            amountPaid,
+            paymentInfo,
+            paidAt: Date.now(),
+        });
+    
+        if (booking) {
+            await Seat.findByIdAndUpdate(seat ,{status : true});
+        }
     }
 
     res.status(201).json(booking);
