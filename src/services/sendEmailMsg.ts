@@ -6,8 +6,8 @@ const template = require("../config/templatesEmail");
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "hoanglinhphal@gmail.com",
-    pass: "Hoanglinh123",
+    user: process.env.EMAIL,
+    pass: process.env.PASSWORD,
   },
 });
 
