@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "server.ts",
   "scripts": {
-    "server": "ts-node-dev src/server.ts"
+    "server": "ts-node-dev server.ts",
+    "start": "ts-node-dev server.ts"
   },
   "keywords": [],
   "author": "steve-do",
