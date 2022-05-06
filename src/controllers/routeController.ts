@@ -42,9 +42,9 @@ export const getroute = asyncHandler(async (req: Request, res: Response) => {
 // @Route /api/routes
 // @Method POST
 export const createRoute = asyncHandler(async (req: Request, res: Response) => {
-    const { from, to, vehicle } = req.body;
+    const { from, to, trips, startTime } = req.body;
 
-    if (!from || !to || !vehicle) {
+    if (!from || !to || !startTime) {
         throw new Error("Fill all field!");
     }
 
@@ -54,8 +54,8 @@ export const createRoute = asyncHandler(async (req: Request, res: Response) => {
         const route = new Route({
             from,
             to,
-            route_id,
-            vehicle
+            trips,
+            startTime
         });
       
         await route.save();
@@ -73,11 +73,11 @@ export const createRoute = asyncHandler(async (req: Request, res: Response) => {
 // @Route /api/routes
 // @Method PUT
 export const updateRoute = asyncHandler(async (req: Request, res: Response) => {
-    const { from, to, route_id, vehicle } = req.body;
+    const { from, to, trips, startTime } = req.body;
     const { id } = req.params;
     try {
         const route = await Route.findByIdAndUpdate(id, {
-            from, to, route_id, vehicle
+            from, to, trips, startTime
         }, { new: true });
     
         res.status(201).json({

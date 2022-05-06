@@ -1,32 +1,22 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
+import Route from '../models/Route';
 import Trip from '../models/Trip';
 import { IUserRequest } from '../models/User';
 
+import {genarateRouteId} from "../utils/genarateRouteId";
+
 // @Desc Get All Trips
-// @Route /api/trips
+// @Route /api/trips/all
 // @Method GET
 export const getAll = asyncHandler(async(req: Request, res: Response) => {
 
     const pageSize = 4;
     const page = Number(req.query.pageNumber) || 1;
 
-    const keyword = req.query.keyword ? {
-        $or: [
-            {name: { $regex: req.query.keyword, $options: "i" }},
-            {description: { $regex: req.query.keyword, $options: "i" }},
-        ]
-    }
-    : {};
+    const count = await Trip.countDocuments();
 
-    const numOfBeds = req.query.numOfBeds ? {numOfBeds: req.query.numOfBeds} : {};
-
-    const category = req.query.tripType ? {category: req.query.tripType} : {};
-
-    const count = await Trip.countDocuments({ ...keyword, ...numOfBeds, ...category })
-
-    const trips = await Trip.find({ ...keyword, ...numOfBeds, ...category }).limit(pageSize)
-    .skip(pageSize * (page - 1));
+    const trips = await Trip.find({}).limit(pageSize).skip(pageSize * (page - 1));
     res.status(201).json({
         trips,
         page,
@@ -37,14 +27,28 @@ export const getAll = asyncHandler(async(req: Request, res: Response) => {
 
 // @Desc Search trips
 // @Route /api/trips/search/
-// @Method GET
+// @Method POST
 export const searchTrips = asyncHandler(async(req: Request, res: Response) => {
-    const filterd = await Trip.find({ $and: [ 
-        { $or: [{name: req.query.keyword },{description: req.query.keyword}] }, 
-        {numOfBeds: req.query.numOfBeds}, 
-        {category: req.query.tripType} 
-    ] });
-    res.status(201).json(filterd);
+    const { from, to, startTime} = req.body;
+
+    const pageSize = 4;
+    const page = Number(req.query.pageNumber) || 1;
+
+    const filterd = await Trip
+    .find({})
+    .where('from').equals(from)
+    .where('to').equals(to)
+    .where('startTime').lte(startTime)
+    .limit(pageSize).skip(pageSize * (page - 1));
+
+    const count = filterd.length;
+    
+    res.status(200).json({
+        filterd,
+        page,
+        pages: Math.ceil(count / pageSize),
+        count
+    });
 })
 
 // @Desc Get Single trip
@@ -68,11 +72,12 @@ export const getSingle = asyncHandler(async (req: Request, res: Response) => {
 // @Method POST
 export const addTrip = asyncHandler(async (req: IUserRequest, res: Response) => {
 
-    req.body.user = req.user._id;
-
-    const trip = await Trip.create(req.body);
-
+    try {
+        const trip = await Trip.create(req.body);
     res.status(201).json(trip);
+    } catch (error: any) {
+        throw new Error(error);        
+    }
 
 })
 

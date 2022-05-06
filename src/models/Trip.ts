@@ -9,24 +9,42 @@ interface IReviews {
 
 
 export interface ITrip extends mongoose.Document {
+    from: String,
+    to: String,
+    startTime: Date,
     price: Number,
+    vehicle: String,
     guestCapacity: Number,
     ratings?: Number,
     numOfReviews?: Number,
-    category: String,
     reviews?: IReviews[],
-    user: mongoose.Types.ObjectId,
-    routeId: String,
     createdAt: Date,
     updatedAt: Date,
 }
 
 const TripSchema = new mongoose.Schema({
+    from: {
+        type: String,
+        required: true
+    },
+ 
+    to: {
+        type: String,
+        required: true
+    },
+    startTime: {
+        type: Date,
+        required: true
+    },
     price: {
         type: Number,
         required: true,
     },
-
+    vehicle: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Vihicle',
+        required: true
+    },
     guestCapacity: {
         type: Number,
         required: true,
@@ -63,17 +81,6 @@ const TripSchema = new mongoose.Schema({
             }
         }
     ],
-
-    user: {
-        type: mongoose.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-
-    routeId: {
-        type: String,
-        required: true
-    }
 
 }, {
     timestamps: true

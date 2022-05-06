@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
 export interface IRoute {
-    from: string;
-    to: string;
-    vehicle: String;
-    route_id: String;
+    from: string,
+    to: string,
+    trips: Array<any>,
+    startTime: Date,
     createdAt: Date,
     updatedAt: Date
 }
@@ -21,16 +21,16 @@ const RouteSchema = new mongoose.Schema({
        required: true
    },
 
-   vehicle: {
-       type: mongoose.Types.ObjectId,
-       ref: 'Vehicle',
+   trips: {
+       type: [mongoose.Types.ObjectId],
+       ref: "Trip",
        required: true
    },
-
-   route_id: {
-       type: String,
+   startTime: {
+       type: Date,
        required: true
    }
+
 }, {
     timestamps: true
 })
