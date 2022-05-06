@@ -4,7 +4,8 @@ import { protect, admin } from '../middlewares/authMiddleware';
 
 const router = express.Router();
 
-router.route("/").post(protect, newBooking).get(protect, admin, getAll);
+router.route("/").post(protect, newBooking);
+router.route("/all").get(protect, admin, getAll);
 router.route("/me").get(protect, myBookings);
 router.route("/:id").delete(protect, admin, deleteBooking);
 

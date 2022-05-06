@@ -10,12 +10,12 @@ import { IUserRequest } from '../models/User';
 // @Method GET
 export const getAll = asyncHandler(async(req: Request, res: Response) => {
 
-    const pageSize = 4;
+    const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
 
     const count = await Trip.countDocuments();
 
-    const trips = await Trip.find({}).limit(pageSize).skip(pageSize * (page - 1));
+    const trips = await Trip.find({}).limit(pageSize).populate('vehicle', 'name').skip(pageSize * (page - 1));
     res.status(201).json({
         trips,
         page,
@@ -30,7 +30,7 @@ export const getAll = asyncHandler(async(req: Request, res: Response) => {
 export const searchTrips = asyncHandler(async(req: Request, res: Response) => {
     const { from, to, startTime} = req.body;
 
-    const pageSize = 4;
+    const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
 
     const filterd = await Trip

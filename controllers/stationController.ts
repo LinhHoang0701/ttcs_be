@@ -7,11 +7,11 @@ import Station, { IStation } from '../models/Station';
 // @Method GET
 export const getAll = asyncHandler(async (req: Request, res: Response) => {
 
-  const pageSize = 4;
+  const pageSize = 10;
   const page = Number(req.query.pageNumber) || 1;
   const count = await Station.countDocuments();
-  const stations = await Station.find({}).limit(pageSize).skip(pageSize * (page - 1));
-  res.status(200).json({  
+  const stations = await Station.find({}).populate('company', 'name').limit(pageSize).skip(pageSize * (page - 1));
+  res.status(200).json({
       stations,
       page,
       pages: Math.ceil(count / pageSize),

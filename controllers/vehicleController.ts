@@ -8,10 +8,10 @@ import Vehicle, { IVehicle } from '../models/Vehicle';
 // @Method GET
 export const getAll = asyncHandler(async (req: Request, res: Response) => {
 
-    const pageSize = 4;
+    const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
     const count = await Vehicle.countDocuments();
-    const vehicles = await Vehicle.find({}).limit(pageSize).skip(pageSize * (page - 1));
+    const vehicles = await Vehicle.find({}).populate('company', 'name').limit(pageSize).skip(pageSize * (page - 1));
     res.status(201).json({  
         vehicles,
         page,

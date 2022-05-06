@@ -8,10 +8,10 @@ import Vehicle from '../models/Vehicle';
 // @Method GET
 export const getAll = asyncHandler(async (req: Request, res: Response) => {
 
-    const pageSize = 4;
+    const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
     const count = await Seat.countDocuments();
-    const seats = await Seat.find({}).limit(pageSize).skip(pageSize * (page - 1));
+    const seats = await Seat.find({}).populate('vehicle', 'name').limit(pageSize).skip(pageSize * (page - 1));
     res.status(201).json({  
         seats,
         page,

@@ -135,7 +135,7 @@ export const updatePassword = asyncHandler(async(req: IUserRequest, res: Respons
 // @Method GET
 export const getAll = asyncHandler(async (req: Request, res: Response) => {
 
-  const pageSize = 4;
+  const pageSize = 10;
   const page = Number(req.query.pageNumber) || 1;
   const count = await User.countDocuments();
   const users = await User.find({}).select("-password").limit(pageSize).skip(pageSize * (page - 1));
