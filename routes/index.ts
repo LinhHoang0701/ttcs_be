@@ -1,7 +1,6 @@
 import express from 'express';
 import tripRoutes from './tripRoutes';
 import userRoutes from './userRoutes';
-import bookingRoutes from './ticketRoutes';
 import uploadRoutes from './uploadRoutes';
 import companyRoutes from './companyRoutes';
 import routeRoutes from './routeRoutes';
@@ -17,9 +16,6 @@ rootRouter.use("/trips", tripRoutes);
 
 // User Route
 rootRouter.use("/users", userRoutes);
-
-// Booking Route
-rootRouter.use("/bookings", bookingRoutes);
 
 // Company Route
 rootRouter.use("/companies", companyRoutes);

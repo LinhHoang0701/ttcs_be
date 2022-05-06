@@ -42,7 +42,7 @@ const TripSchema = new mongoose.Schema({
     },
     vehicle: {
         type: mongoose.Types.ObjectId,
-        ref: 'Vihicle',
+        ref: 'Vehicle',
         required: true
     },
     guestCapacity: {

@@ -24,7 +24,7 @@ export const getAll = asyncHandler(async (req: Request, res: Response) => {
 // @Desc Get route
 // @Route /api/routes
 // @Method GET
-export const getroute = asyncHandler(async (req: Request, res: Response) => {
+export const getRoute = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {

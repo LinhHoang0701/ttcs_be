@@ -21,7 +21,7 @@ const VehicleSchema = new mongoose.Schema({
     guestCapacity: {
         type: Number,
         required: true,
-    },
+    }
 }, {
     timestamps: true
 })

@@ -1,10 +1,9 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import Route from '../models/Route';
+import Seat from '../models/Seat';
 import Trip from '../models/Trip';
 import { IUserRequest } from '../models/User';
-
-import {genarateRouteId} from "../utils/genarateRouteId";
 
 // @Desc Get All Trips
 // @Route /api/trips/all
@@ -58,12 +57,14 @@ export const getSingle = asyncHandler(async (req: Request, res: Response) => {
 
     const trip = await Trip.findById(req.params.id);
 
+    const countAvailableSeat = await Seat.countDocuments({status: false});
+
     if(!trip) {
         res.status(404);
         throw new Error("Trip not found");
     }
 
-    res.status(201).json(trip);
+    res.status(201).json({trip, countAvailableSeat});
 
 })
 
