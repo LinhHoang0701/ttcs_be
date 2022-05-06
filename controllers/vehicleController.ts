@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
+import Company from '../models/Company';
 import Vehicle, { IVehicle } from '../models/Vehicle';
 
 
@@ -43,17 +44,31 @@ export const getVehicle = asyncHandler(async (req: Request, res: Response) => {
 // @Method POST
 export const createVehicle = asyncHandler(async (req: Request, res: Response) => {
     const { name, company, guestCapacity } = req.body;
-  
+
+    let vehicles = [];
+
     const vehicle = new Vehicle({
       name,
       company,
       guestCapacity,
     });
-  
+
+    if (vehicle) {
+        vehicles.push(vehicle._id);
+    }
     await vehicle.save();
+
+    let companies = await Company.findById(company);
+
+    if (companies) {
+        vehicles.push(companies.vehicles)
+    }
+    await Company.findByIdAndUpdate(company, {vehicles: vehicles.flat()});
+    
   
     res.status(201).json({
-        message: "Vehicle created"
+        message: "Vehicle created",
+        data: vehicle
     });
 });
 
