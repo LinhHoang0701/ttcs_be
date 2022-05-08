@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
+import { startSession } from 'mongoose';
 import Company, { ICompany, ICompanyRequest } from '../models/Company';
 import Station from '../models/Station';
 const AWS = require("aws-sdk/clients/s3");
@@ -51,47 +52,65 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
     let imageUrl = "";
     let imageKey = "";
 
-    if (image) {
-        const s3bucket = new AWS({
-            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    const session = await startSession();
+    const opts = { session, returnOriginal: false };
+
+    try {
+        session.startTransaction();
+
+        if (image) {
+            const s3bucket = new AWS({
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            });
+
+            const params = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: image.originalname,
+                Body: image.buffer,
+                ContentType: image.mimetype,
+                ACL: "public-read",
+            };
+            const s3Upload = await s3bucket.upload(params).promise();
+
+            imageUrl = s3Upload.Location;
+            imageKey = s3Upload.key;
+        }
+
+        const company = new Company({
+            name,
+            description,
+            station,
+            vehicles,
+            imageUrl,
+            imageKey
         });
+    
 
-        const params = {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: image.originalname,
-            Body: image.buffer,
-            ContentType: image.mimetype,
-            ACL: "public-read",
-        };
-        const s3Upload = await s3bucket.upload(params).promise();
+        if (company) {
+            await Station.findByIdAndUpdate(station, {
+                company: company._id
+            })
+        }
+    
+        await company.save(opts);
 
-        imageUrl = s3Upload.Location;
-        imageKey = s3Upload.key;
+        await session.commitTransaction();
+        session.endSession();
+    
+        res.status(201).json({
+            message: "Company created",
+            data: company
+        });
+    } catch (err) {
+
+        await session.abortTransaction();
+        session.endSession();
+    
+        res.status(400).json({
+          error: "Your request could not be processed. Please try again.",
+        });
     }
-
-    const company = new Company({
-        name,
-        description,
-        station,
-        vehicles,
-        imageUrl,
-        imageKey
-    });
-  
-
-    if (company) {
-        await Station.findByIdAndUpdate(station, {
-            company: company._id
-        })
-    }
-  
-    await company.save();
-  
-    res.status(201).json({
-        message: "Company created",
-        data: company
-    });
 });
 
 // @Desc Update company
@@ -100,17 +119,56 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
 export const updateCompany = asyncHandler(async (req: Request, res: Response) => {
     const { name, description, vehicles } = req.body;
     const { id } = req.params;
+    const image = req.file;
+
+    let imageUrl = "";
+    let imageKey = "";
+
+    const session = await startSession();
+    const opts = { session, returnOriginal: false };
+
     try {
+
+        session.startTransaction();
+
+        if (image) {
+            const s3bucket = new AWS({
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            });
+
+            const params = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: image.originalname,
+                Body: image.buffer,
+                ContentType: image.mimetype,
+                ACL: "public-read",
+            };
+            const s3Upload = await s3bucket.upload(params).promise();
+
+            imageUrl = s3Upload.Location;
+            imageKey = s3Upload.key;
+        }
+
         const company = await Company.findByIdAndUpdate(id, {
-            name, description, vehicles
-        }, { new: true });
-    
+            name, description, vehicles, imageUrl, imageKey
+        }, { new: true, opts });
+
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(201).json({
             company
         });
-    } catch (err: any) {
-        throw new Error(err);
-    }
+    } catch (error) {
+
+        await session.abortTransaction();
+        session.endSession();
+    
+        res.status(400).json({
+          error: "Your request could not be processed. Please try again.",
+        });
+      }
   })
 
 // @Desc Delete company

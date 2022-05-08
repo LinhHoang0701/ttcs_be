@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
+import { startSession } from 'mongoose';
 import Company from '../models/Company';
 import Vehicle, { IVehicle } from '../models/Vehicle';
+const AWS = require("aws-sdk/clients/s3");
 
 
 // @Desc Get all vehicles 
@@ -47,29 +49,71 @@ export const createVehicle = asyncHandler(async (req: Request, res: Response) =>
 
     let vehicles = [];
 
-    const vehicle = new Vehicle({
-      name,
-      company,
-      guestCapacity,
-    });
+    const image = req.file;
+   
+    let imageUrl = "";
+    let imageKey = "";
 
-    if (vehicle) {
-        vehicles.push(vehicle._id);
-    }
-    await vehicle.save();
+    const session = await startSession();
+    const opts = { session, returnOriginal: false };
 
-    let companies = await Company.findById(company);
+    try {
+        session.startTransaction();
 
-    if (companies) {
-        vehicles.push(companies.vehicles)
-    }
-    await Company.findByIdAndUpdate(company, {vehicles: vehicles.flat()});
+        if (image) {
+            const s3bucket = new AWS({
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            });
+
+            const params = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: image.originalname,
+                Body: image.buffer,
+                ContentType: image.mimetype,
+                ACL: "public-read",
+            };
+            const s3Upload = await s3bucket.upload(params).promise();
+
+            imageUrl = s3Upload.Location;
+            imageKey = s3Upload.key;
+        }
+
+        const vehicle = new Vehicle({
+            name,
+            company,
+            guestCapacity,
+            imageUrl,
+            imageKey
+          });
+      
+          if (vehicle) {
+              vehicles.push(vehicle._id);
+          }
+          await vehicle.save(opts);
+      
+          let companies = await Company.findById(company);
+      
+          if (companies) {
+              vehicles.push(companies.vehicles)
+          }
+          await Company.findByIdAndUpdate(company, {vehicles: vehicles.flat()}, opts);
+
+          await session.commitTransaction();
+          session.endSession();
+        
+          res.status(201).json({
+              message: "Vehicle created",
+              data: vehicle
+          });
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
     
-  
-    res.status(201).json({
-        message: "Vehicle created",
-        data: vehicle
-    });
+        res.status(400).json({
+          error: "Your request could not be processed. Please try again.",
+        });
+    }
 });
 
 // @Desc update vehicle
@@ -80,16 +124,53 @@ export const updateVehicle = asyncHandler(async (req: Request, res: Response) =>
     const { name, company, guestCapacity } = req.body;
     const { id } = req.params;
 
+    const image = req.file;
+   
+    let imageUrl = "";
+    let imageKey = "";
+
+    const session = await startSession();
+    const opts = { session, returnOriginal: false };
+
     try {
+        session.startTransaction();
+
+        if (image) {
+            const s3bucket = new AWS({
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            });
+
+            const params = {
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: image.originalname,
+                Body: image.buffer,
+                ContentType: image.mimetype,
+                ACL: "public-read",
+            };
+            const s3Upload = await s3bucket.upload(params).promise();
+
+            imageUrl = s3Upload.Location;
+            imageKey = s3Upload.key;
+        }
+
         const vehicle = await Vehicle.findByIdAndUpdate(id, {
-            name, company, guestCapacity
-        }, { new: true });
+            name, company, guestCapacity,imageUrl,imageKey
+        }, { new: true, opts });
+
+        await session.commitTransaction();
+          session.endSession();
     
         res.status(201).json({
             vehicle
         });
     } catch (err: any) {
-        throw new Error(err);
+        await session.abortTransaction();
+        session.endSession();
+    
+        res.status(400).json({
+          error: "Your request could not be processed. Please try again.",
+        });
     }
 })
 
