@@ -1,62 +1,64 @@
-const nodemailer = require("nodemailer");
+import nodemailer from 'nodemailer';
 
-const template = require("../config/templatesEmail");
-
-
+import {confirmResetPasswordEmail, contactEmail, newsletterSubscriptionEmail, resetEmail, signupEmail, tripConfirmationEmail} from "../config/templatesEmail";
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL,
-    pass: process.env.PASSWORD,
+    user: "bookingbuskma@gmail.com",
+    pass: "Hoanglinh123..",
   },
 });
 
-exports.sendEmail = async (email: String, type: String, host: String, data: any) => {
+interface Message {
+  subject: any;
+  text: any;
+}
+
+export const sendEmail = async (email: String, type: String, host: String, data: any = undefined) => {
   try {
     const message = prepareTemplate(type, host, data);
-    const config = {
-      from: `Ve Xe Re>`,
+    const config: any = {
+      from: `Ve Xe Re`,
       to: email,
       subject: message.subject,
       text: message.text,
     };
     return await transporter.sendMail(config);
-  } catch (error) {
-    console.log(error);
-    return error;
+  } catch (error: any) {
+    throw new Error(error)
   }
 };
 
 const prepareTemplate = (type: String, host: String, data: any) => {
-  let message;
+  let message: Message;
 
   switch (type) {
     case "reset":
-      message = template.resetEmail(host, data);
+      message = resetEmail(host, data);
       break;
 
     case "reset-confirmation":
-      message = template.confirmResetPasswordEmail();
+      message = confirmResetPasswordEmail();
       break;
 
     case "signup":
-      message = template.signupEmail(data);
+      message = signupEmail(data);
       break;
 
     case "newsletter-subscription":
-      message = template.newsletterSubscriptionEmail();
+      message = newsletterSubscriptionEmail();
       break;
 
     case "contact":
-      message = template.contactEmail();
+      message = contactEmail();
       break;
 
     case "trip-confirmation":
-      message = template.orderConfirmationEmail(data);
+      message = tripConfirmationEmail(data);
       break;
 
     default:
-      message = "";
+      message = "" as any;
   }
 
   return message;

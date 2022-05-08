@@ -4,6 +4,8 @@ export interface IVehicle {
     name: String;
     company: String;
     guestCapacity: number;
+    imageUrl: String;
+    imageKey: String;
     createdAt: Date,
     updatedAt: Date
 }
@@ -21,6 +23,15 @@ const VehicleSchema = new mongoose.Schema({
     guestCapacity: {
         type: Number,
         required: true,
+    },
+    imageUrl: {
+        type: String,
+        required: false
+    },
+
+    imageKey: {
+        type: String,
+        required: false
     }
 }, {
     timestamps: true

@@ -1,4 +1,4 @@
-exports.resetEmail = (host: String, resetToken: String) => {
+export const resetEmail = (host: String, resetToken: String) => {
     const message = {
       subject: "Reset Password",
       text:
@@ -13,7 +13,7 @@ exports.resetEmail = (host: String, resetToken: String) => {
     return message;
   };
   
-  exports.confirmResetPasswordEmail = () => {
+export const confirmResetPasswordEmail = () => {
     const message = {
       subject: "Password Changed",
       text:
@@ -25,7 +25,7 @@ exports.resetEmail = (host: String, resetToken: String) => {
   };
   
   
-  exports.signupEmail = (name: any) => {
+export const signupEmail = (name: any) => {
     const message = {
       subject: "Account Registration",
       text: `Hi ${name.firstName} ${name.lastName}! Thank you for creating an account with us!.`,
@@ -34,7 +34,7 @@ exports.resetEmail = (host: String, resetToken: String) => {
     return message;
   };
   
-  exports.newsletterSubscriptionEmail = () => {
+export const newsletterSubscriptionEmail = () => {
     const message = {
       subject: "Newsletter Subscription",
       text:
@@ -45,7 +45,7 @@ exports.resetEmail = (host: String, resetToken: String) => {
     return message;
   };
   
-  exports.contactEmail = () => {
+export const contactEmail = () => {
     const message = {
       subject: "Contact Us",
       text: `We received your message! Our team will contact you soon. \n\n`,
@@ -55,7 +55,7 @@ exports.resetEmail = (host: String, resetToken: String) => {
   };
   
   
-  exports.tripConfirmationEmail = (trip: any) => {
+export const tripConfirmationEmail = (trip: any) => {
     const message = {
       subject: `Trip Confirmation ${trip._id}`,
       text:

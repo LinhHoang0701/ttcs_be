@@ -9,6 +9,8 @@ export interface ICompany {
     description: String;
     station: String;
     vehicles: Array<any>;
+    imageUrl: String;
+    imageKey: String;
     createdAt: Date,
     updatedAt: Date
 }
@@ -34,8 +36,17 @@ const CompanySchema = new mongoose.Schema({
         type: [mongoose.Types.ObjectId],
         ref: 'Vehicle',
         required: true
-    }
+    },
+    
+    imageUrl: {
+        type: String,
+        required: false
+    },
 
+    imageKey: {
+        type: String,
+        required: false
+    }
 
 }, {
     timestamps: true

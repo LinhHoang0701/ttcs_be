@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
 export interface IUserRequest extends Request {
-    user?: any
+    user?: any,
 }
 
 export interface IUser extends mongoose.Document {
@@ -14,6 +14,7 @@ export interface IUser extends mongoose.Document {
     avatar?: string,
     isAdmin: boolean,
     token?: string,
+    resetPasswordToken: String,
     createdAt: Date,
     updatedAt: Date,
     comparePassword(entredPassword: string): Promise<Boolean> 
@@ -49,7 +50,8 @@ const UserSchema = new mongoose.Schema({
     isAdmin: {
         type: Boolean,
         default: false,
-    }
+    },
+    resetPasswordToken: { type: String },
 
 }, {
     timestamps: true

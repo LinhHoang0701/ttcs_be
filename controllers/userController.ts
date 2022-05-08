@@ -3,6 +3,8 @@ import asyncHandler from "express-async-handler";
 import bcrypt from 'bcrypt';
 import User, { IUserRequest } from "../models/User";
 import generateToken from "../utils/generateToken";
+import { sendEmail } from "../services/sendEmailMsg";
+import {startSession} from "mongoose";
 
 // @Desc Register user
 // @Route /api/users/register
@@ -199,3 +201,117 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   res.status(201).json({});
 
 })
+
+// @Desc Forgot Password
+// @Route /api/users/forgot
+// @Method POST
+export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
+  const session = await startSession();
+const opts = { session, returnOriginal: false };
+  
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res
+        .status(400)
+        .json({ error: "You must enter an email address." }).end();
+    }
+
+    session.startTransaction();
+
+    const existingUser = await User.findOne({ email });
+
+    if (!existingUser) {
+      throw new Error("No user found for this email address.");
+    }
+
+    const resetToken = generateToken(existingUser._id);
+
+    existingUser.resetPasswordToken = resetToken;
+    existingUser.save(opts);
+    
+    try {
+      await sendEmail(
+        existingUser.email,
+        "reset",
+        req.headers.host as String,
+        resetToken
+      );
+    } catch (error: any) {
+      console.log(error);
+      
+      throw new Error(error.message);
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: "Please check your email for the link to reset your password.",
+    });
+  } catch (error: any) {
+
+    await session.abortTransaction();
+    session.endSession();
+
+    res.status(400).json({
+      error: "Your request could not be processed. Please try again."
+    });
+  }
+})
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const session = await startSession();
+  const opts = { session, returnOriginal: false };
+
+  try {
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({ error: "You must enter a password." });
+    }
+
+    session.startTransaction();
+
+    const resetUser = await User.findOne({
+      resetPasswordToken: req.params.token,
+    });
+
+    if (!resetUser) {
+      throw new Error("Your token has expired. Please attempt to reset your password again.");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(password, salt);
+
+    resetUser.password = hash;
+    resetUser.resetPasswordToken = "";
+
+    resetUser.save(opts);
+
+    try {
+      await sendEmail(resetUser.email, "reset-confirmation", req.headers.host as String);
+    } catch (err) {
+      throw new Error("Cannot send email!")
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message:
+        "Password changed successfully. Please login with your new password.",
+    });
+  } catch (error) {
+
+    await session.abortTransaction();
+    session.endSession();
+
+    res.status(400).json({
+      error: "Your request could not be processed. Please try again.",
+    });
+  }
+}

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import Company, { ICompany, ICompanyRequest } from '../models/Company';
 import Station from '../models/Station';
+const AWS = require("aws-sdk/clients/s3");
+
 
 // @Desc Get all companies 
 // @Route /api/companies/all
@@ -43,13 +45,40 @@ export const getCompany = asyncHandler(async (req: Request, res: Response) => {
 // @Method POST
 export const createCompany = asyncHandler(async (req: Request, res: Response) => {
     const { name, description, station, vehicles } = req.body;
-  
+
+    const image = req.file;
+   
+    let imageUrl = "";
+    let imageKey = "";
+
+    if (image) {
+        const s3bucket = new AWS({
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        });
+
+        const params = {
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: image.originalname,
+            Body: image.buffer,
+            ContentType: image.mimetype,
+            ACL: "public-read",
+        };
+        const s3Upload = await s3bucket.upload(params).promise();
+
+        imageUrl = s3Upload.Location;
+        imageKey = s3Upload.key;
+    }
+
     const company = new Company({
-      name,
-      description,
-      station,
-      vehicles,
+        name,
+        description,
+        station,
+        vehicles,
+        imageUrl,
+        imageKey
     });
+  
 
     if (company) {
         await Station.findByIdAndUpdate(station, {
