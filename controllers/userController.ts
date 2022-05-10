@@ -31,7 +31,6 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-
 // @Desc Login user
 // @Route /api/users/login
 // @Method POST
@@ -250,6 +249,7 @@ const opts = { session, returnOriginal: false };
     res.status(200).json({
       success: true,
       message: "Please check your email for the link to reset your password.",
+      token: resetToken
     });
   } catch (error: any) {
 
@@ -283,10 +283,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       throw new Error("Your token has expired. Please attempt to reset your password again.");
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hash = await bcrypt.hash(password, salt);
-
-    resetUser.password = hash;
+    resetUser.password = password;
     resetUser.resetPasswordToken = "";
 
     resetUser.save(opts);
