@@ -47,6 +47,8 @@ export const getCompany = asyncHandler(async (req: Request, res: Response) => {
 export const createCompany = asyncHandler(async (req: Request, res: Response) => {
     const { name, description, station, vehicles } = req.body;
 
+    const companies = [];
+
     const image = req.file;
    
     let imageUrl = "";
@@ -88,9 +90,15 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
     
 
         if (company) {
-            await Station.findByIdAndUpdate(station, {
-                company: company._id
-            })
+            companies.push(company._id);
+
+            let stations = await Station.findById(station);
+
+            if (stations) {
+                companies.push(stations.company);
+            }
+
+            await Station.findByIdAndUpdate(station, companies.flat());
         }
     
         await company.save(opts);
@@ -190,3 +198,31 @@ export const deleteCompany = asyncHandler(async (req: Request, res: Response) =>
 // @Desc Delete Many Companies
 // @Route /api/companies
 // @Method DELETE
+
+
+export const searchCompany = asyncHandler (async (req: Request, res: Response) => {
+    const {value} = req.body;
+  
+    try {
+      const companies = await Company.find({
+        $or : [
+          {
+            name: {$regex: value},
+          }
+        ]
+      });
+  
+      const pageSize = 10;
+      const page = Number(req.query.pageNumber) || 1;
+      const count = companies.length;
+  
+      res.status(200).json({
+        companies,
+        page,
+        pages: Math.ceil(count / pageSize),
+        count
+      })
+    } catch (error: any) {
+      throw new Error(error)
+    }
+  })

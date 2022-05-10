@@ -312,3 +312,33 @@ export const resetPassword = async (req: Request, res: Response) => {
     });
   }
 }
+
+export const searchUser = asyncHandler (async (req: Request, res: Response) => {
+  const {value} = req.body;
+
+  try {
+    const users = await User.find({
+      $or : [
+        {
+          name: {$regex: value},
+        },
+        {
+          email: {$regex: value}
+        }
+      ]
+    });
+
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    const count = users.length;
+
+    res.status(200).json({
+      users,
+      page,
+      pages: Math.ceil(count / pageSize),
+      count
+    })
+  } catch (error: any) {
+    throw new Error(error)
+  }
+})

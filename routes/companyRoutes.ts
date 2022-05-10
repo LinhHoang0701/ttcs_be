@@ -1,5 +1,5 @@
 import express from "express";
-import { getAll, createCompany, updateCompany, deleteCompany, getCompany } from "../controllers/companyController";
+import { getAll, createCompany, updateCompany, deleteCompany, getCompany, searchCompany } from "../controllers/companyController";
 import { protect, admin } from '../middlewares/authMiddleware';
 
 const multer = require("multer");
@@ -14,5 +14,6 @@ router.route('/:id').get(protect, admin, getCompany);
 router.route('/').post(protect, admin, upload.single("image"), createCompany);
 router.route('/:id').put(protect, admin, updateCompany);
 router.route('/:id').delete(protect, admin, deleteCompany);
+router.route('/search').post(protect, admin, searchCompany);
 
 export default router;

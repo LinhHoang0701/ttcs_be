@@ -92,3 +92,33 @@ export const deleteStation = asyncHandler(async (req: Request, res: Response) =>
   }
 
 }) 
+
+export const searchStation = asyncHandler (async (req: Request, res: Response) => {
+  const {value} = req.body;
+
+  try {
+    const stations = await Station.find({
+      $or : [
+        {
+          name: {$regex: value},
+        },
+        {
+          address: {$regex: value}
+        }
+      ]
+    });
+
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    const count = stations.length;
+
+    res.status(200).json({
+      stations,
+      page,
+      pages: Math.ceil(count / pageSize),
+      count
+    })
+  } catch (error: any) {
+    throw new Error(error)
+  }
+})

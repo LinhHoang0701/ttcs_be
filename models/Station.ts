@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 export interface IStation {
     name: string;
     address: string;
-    company: string;
+    company: Array<any>;
     createdAt: Date,
     updatedAt: Date
 }
@@ -21,7 +21,7 @@ const StationSchema = new mongoose.Schema({
    }, 
 
    company: {
-       type: mongoose.Types.ObjectId,
+       type: [mongoose.Types.ObjectId],
        ref: 'Company'
    }
 
