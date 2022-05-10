@@ -186,3 +186,7 @@ export const deleteCompany = asyncHandler(async (req: Request, res: Response) =>
     }
 
 }) 
+
+// @Desc Delete Many Companies
+// @Route /api/companies
+// @Method DELETE
