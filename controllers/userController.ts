@@ -350,3 +350,14 @@ export const searchUser = asyncHandler (async (req: Request, res: Response) => {
     throw new Error(error)
   }
 })
+
+export const getAccount = asyncHandler (async (req: IUserRequest, res: Response) => {
+  const user = await User.findById(req.user._id).select("-password");
+
+  if(!user) {
+    res.status(400);
+    throw new Error("User not found");
+  }
+
+  res.status(201).json(user);
+})
