@@ -154,7 +154,7 @@ export const getAll = asyncHandler(async (req: Request, res: Response) => {
 // @Method GET
 export const getSingleUser = asyncHandler(async (req: Request, res: Response) => {
 
-  const user = await User.findById(req.params.id).select("-password");
+  const user = await User.findById(req.params.userId).select("-password");
 
   if(!user) {
     res.status(401);
@@ -170,16 +170,24 @@ export const getSingleUser = asyncHandler(async (req: Request, res: Response) =>
 // @Method PUT
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
 
-  let user = await User.findById(req.params.id);
+  let user = await User.findById(req.params.userId);
 
   if(!user) {
     res.status(401);
     throw new Error("User not found");
   }
 
-  user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }).select("-password");
+  try {
+    user = await User.findByIdAndUpdate(req.params.userId, req.body, { new: true }).select("-password");
 
-  res.status(201).json(user);
+    res.status(201).json({
+      message: "User updated successfully."
+    });
+  } catch (error) {
+    res.status(400).json({
+      error
+    })
+  }
 
 })
 
@@ -188,14 +196,14 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
 // @Method DELETE
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
-  let user = await User.findById(req.params.id);
+  let user = await User.findById(req.params.userId);
 
   if(!user) {
     res.status(401);
     throw new Error("User not found");
   }
 
-  await User.findByIdAndDelete(req.params.id);
+  await User.findByIdAndDelete(req.params.userId);
 
   res.status(201).json({});
 
