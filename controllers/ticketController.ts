@@ -16,26 +16,40 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
     
     const { trip, seat, amountPaid, paymentInfo } = req.body;
 
-    let booking = {};
+    let booking;
 
-    if (paymentInfo) {
+    try {
+        if (paymentInfo) {
 
-        booking = await Ticket.create({
-            trip,
-            user: req.user._id,
-            seat,
-            amountPaid,
-            paymentInfo,
-            paidAt: Date.now(),
-        });
-    
-        if (booking) {
-            await Seat.findByIdAndUpdate(seat ,{status : true});
+            booking = new Ticket({
+                trip,
+                user: req.user._id,
+                seat,
+                isPaid: true,
+                amountPaid,
+                paymentInfo,
+                paidAt: Date.now(),
+            });
+        
+            if (booking) {
+                await Seat.update(
+                    {
+                        _id: {$in: seat}
+                    },
+                    {
+                        $set: {status : true}
+                    },
+                    {multi: true}
+                );
+                await booking.save();
+            }
         }
+    
+        res.status(201).json(booking);
+    } catch (error) {
+        console.log(error);
+        res.status(400).json(error)
     }
-
-    res.status(201).json(booking);
-
 })
 
 // @Desc Get all bookings current user
@@ -43,7 +57,7 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
 // @Method GET
 export const myBookings = asyncHandler(async (req: IUserRequest, res: Response) => {
 
-    const bookings = await Ticket.find({ user: req.user._id }).populate("user", "name email");
+    const bookings = await Ticket.find({ user: req.user._id }).populate("user", "name email").populate("trip", "from to startTime guestCapacity").populate("seat", "sku type");
 
     if(!bookings) {
         res.status(401);
@@ -82,8 +96,12 @@ export const deleteBooking = asyncHandler(async (req: Request, res: Response) =>
         throw new Error("Ticket not found");
     }
 
-    await Ticket.findByIdAndDelete(req.params.id);
+    try {
+        await Ticket.findByIdAndDelete(req.params.id);
 
-    res.status(201).json({});
+        res.status(201).json({});
+    } catch (error) {
+        res.status(400).json(error)
+    }
 
 })

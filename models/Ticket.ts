@@ -12,7 +12,7 @@ export interface ITicket {
     trip: String,
     isPaid: Boolean,
     amountPaid: Number,
-    seat: String,
+    seat: Array<any>,
     paymentInfo: TPaymentInfo,
     paidAt: Date,
     createdAt: Date,
@@ -31,7 +31,7 @@ const TicketSchema = new mongoose.Schema({
         ref: "User"
     },
     seat: {
-        type: mongoose.Types.ObjectId,
+        type: [mongoose.Types.ObjectId],
         required: true,
         ref: "Seat"
     },
