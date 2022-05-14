@@ -6,6 +6,8 @@ import Moment from 'moment';
 import { extendMoment } from 'moment-range';
 import Trip from '../models/Trip';
 import Seat from '../models/Seat';
+import Vehicle from '../models/Vehicle';
+import { startSession } from 'mongoose';
 
 const moment = extendMoment(Moment as any);
 
@@ -13,11 +15,14 @@ const moment = extendMoment(Moment as any);
 // @Route /api/bookings
 // @Method POST
 export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) => {
-    
-    const { trip, seat, amountPaid, paymentInfo } = req.body;
+    const session = await startSession();
+    const opts = { session, returnOriginal: false };
+    const { trip, seat, amountPaid, paymentInfo, vehicle, company } = req.body;
 
     let booking;
 
+    session.startTransaction();
+    
     try {
         if (paymentInfo) {
 
@@ -28,6 +33,8 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
                 isPaid: true,
                 amountPaid,
                 paymentInfo,
+                vehicle,
+                company,
                 paidAt: Date.now(),
             });
         
@@ -44,9 +51,15 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
                 await booking.save();
             }
         }
-    
+
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(201).json(booking);
     } catch (error) {
+
+        await session.abortTransaction();
+        session.endSession();
         console.log(error);
         res.status(400).json(error)
     }
@@ -104,4 +117,11 @@ export const deleteBooking = asyncHandler(async (req: Request, res: Response) =>
         res.status(400).json(error)
     }
 
+})
+
+export const getTicketByVehicle = asyncHandler(async (req: Request, res: Response) => {
+    const vehicle = await Vehicle.findById(req.body.vehicle);
+
+    console.log(vehicle);
+    
 })

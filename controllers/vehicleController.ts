@@ -191,3 +191,54 @@ export const deleteVehicle = asyncHandler(async (req: Request, res: Response) =>
 
 }) 
 
+export const getVehicleByCompanyId = asyncHandler(async (req: Request, res: Response) => {
+    const {companyId} = req.params;
+    const vehicles:any = [];
+    try {
+        const company = await Company.findById(companyId).populate('vehicles', 'name guestCapacity isCreatedTrip');
+
+        if (company) {
+            company?.vehicles.map(vehicle => vehicles.push(vehicle));
+        }
+        else {
+            throw new Error("Wrong company Id");
+        }
+
+        res.status(200).json({vehicles: vehicles});
+    } catch (error: any) {
+        res.status(400).json({error: error.message});
+    }
+    
+})
+
+export const searchVehicle = asyncHandler(async (req: Request, res: Response) => {
+    const { name, isCreatedTrip } = req.body;
+
+    try {
+        const pageSize = 10;
+        const page = Number(req.query.pageNumber) || 1;
+        const vehicles = await Vehicle.find({
+            $and : [
+                {
+                  name: {$regex: name},
+                },
+                {
+                  isCreatedTrip: isCreatedTrip
+                }
+              ]
+        }).limit(pageSize).skip(pageSize * (page - 1))
+
+        
+        const count = vehicles.length;
+
+        res.status(200).json({
+            vehicles,
+            page,
+            pages: Math.ceil(count / pageSize),
+            count
+          })
+    } catch (error: any) {
+        res.status(400).json({ error: error.message})
+    }
+})
+

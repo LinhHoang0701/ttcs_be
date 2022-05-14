@@ -4,7 +4,7 @@ type TPaymentInfo = {
     id: string,
     status: string,
     update_time: Date,
-    email_address: string,
+    email_address: string
 }
 
 export interface ITicket {
@@ -14,6 +14,8 @@ export interface ITicket {
     amountPaid: Number,
     seat: Array<any>,
     paymentInfo: TPaymentInfo,
+    company: string,
+    vehicle: string,
     paidAt: Date,
     createdAt: Date,
     updatedAt: Date
@@ -34,6 +36,16 @@ const TicketSchema = new mongoose.Schema({
         type: [mongoose.Types.ObjectId],
         required: true,
         ref: "Seat"
+    },
+    company: {
+        type: [mongoose.Types.ObjectId],
+        required: true,
+        ref: "Company"
+    },
+    vehicle: {
+        type: [mongoose.Types.ObjectId],
+        required: true,
+        ref: "Vehicle"
     },
     isPaid: {
         type:  Boolean,
