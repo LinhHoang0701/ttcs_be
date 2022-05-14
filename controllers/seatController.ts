@@ -117,5 +117,30 @@ export const deleteSeat = asyncHandler(async (req: Request, res: Response) => {
 }) 
 
 export const searchSeat = asyncHandler(async (req: Request, res: Response) => {
-    
+    const {status,type, sku} = req.body;
+
+  try {
+    const seats = await Seat.find({
+      $or : [
+        {
+            type: {$regex: type}
+        }, {
+            status: status,
+        }
+      ]
+    });
+
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    const count = seats.length;
+
+    res.status(200).json({
+      seats,
+      page,
+      pages: Math.ceil(count / pageSize),
+      count
+    })
+  } catch (error: any) {
+    res.status(400).json({ error: error.message})
+  }
 })
