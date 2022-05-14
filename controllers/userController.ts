@@ -25,7 +25,6 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      avatar: user.avatar,
       isAdmin: user.isAdmin,
       token: generateToken(user._id)
   });
@@ -51,7 +50,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       id: user._id,
       name: user.name,
       email: user.email,
-      avatar: user.avatar,
       isAdmin: user.isAdmin,
       token: generateToken(user._id)
     });
@@ -68,6 +66,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 // @Method PUT
 export const updateProfile = asyncHandler(async (req: IUserRequest, res: Response) => {
 
+  console.log(req.user);
   let user = await User.findById(req.user.id);
 
   if(!user) {
@@ -75,17 +74,16 @@ export const updateProfile = asyncHandler(async (req: IUserRequest, res: Respons
     throw new Error("User not found");
   }
 
-  const { name, email, avatar } = req.body;
+  const { name } = req.body;
 
   user = await User.findByIdAndUpdate(req.user.id, {
-    name, email, avatar
+    name
   }, { new: true }).select("-password");
 
   res.status(201).json({
     id: user?._id,
     name: user?.name,
     email: user?.email,
-    avatar: user?.avatar,
     isAdmin: user?.isAdmin,
     token: generateToken(user?._id)
   });
@@ -119,7 +117,6 @@ export const updatePassword = asyncHandler(async(req: IUserRequest, res: Respons
       id: user?._id,
       name: user?.name,
       email: user?.email,
-      avatar: user?.avatar,
       isAdmin: user?.isAdmin,
       token: generateToken(user?._id)
     });

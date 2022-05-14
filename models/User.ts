@@ -11,7 +11,6 @@ export interface IUser extends mongoose.Document {
     name: string,
     email: string,
     password: string,
-    avatar?: string,
     isAdmin: boolean,
     token?: string,
     resetPasswordToken: String,
@@ -41,10 +40,6 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-    },
-
-    avatar: {
-        type: String,
     },
 
     isAdmin: {
