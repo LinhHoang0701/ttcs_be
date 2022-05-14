@@ -262,7 +262,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
     session.endSession();
 
     res.status(400).json({
-      error: "Your request could not be processed. Please try again."
+      error: error.message
     });
   }
 })

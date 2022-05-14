@@ -117,7 +117,7 @@ export const deleteSeat = asyncHandler(async (req: Request, res: Response) => {
 }) 
 
 export const searchSeat = asyncHandler(async (req: Request, res: Response) => {
-    const {status,type, sku} = req.body;
+    const {status,type} = req.body;
 
   try {
     const seats = await Seat.find({
