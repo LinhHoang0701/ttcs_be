@@ -46,19 +46,19 @@ export const getCompany = asyncHandler(async (req: Request, res: Response) => {
 // @Method POST
 export const createCompany = asyncHandler(async (req: Request, res: Response) => {
     const { name, description, station, vehicles } = req.body;
+    const session = await startSession();
+    const opts = { session, returnOriginal: false };
 
-    const companies = [];
+    let companies = [];
 
     const image = req.file;
    
     let imageUrl = "";
     let imageKey = "";
 
-    const session = await startSession();
-    const opts = { session, returnOriginal: false };
 
+    session.startTransaction();
     try {
-        session.startTransaction();
 
         if (image) {
             const s3bucket = new AWS({
@@ -87,21 +87,19 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
             imageUrl,
             imageKey
         });
-    
 
-        if (company) {
-            companies.push(company._id);
-
-            let stations = await Station.findById(station);
-
-            if (stations) {
-                companies.push(stations.company);
-            }
-
-            await Station.findByIdAndUpdate(station, companies.flat());
-        }
-    
+        console.log(company);
         await company.save(opts);
+    
+        if (company) {
+            let stations = await Station.findById(station);
+            companies = stations?.company as Array<any>;
+            if (stations) {
+                companies.push(company._id);
+            }
+            
+            await Station.findByIdAndUpdate(station, {company: companies});
+        }
 
         await session.commitTransaction();
         session.endSession();

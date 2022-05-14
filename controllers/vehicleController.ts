@@ -57,8 +57,8 @@ export const createVehicle = asyncHandler(async (req: Request, res: Response) =>
     const session = await startSession();
     const opts = { session, returnOriginal: false };
 
+    session.startTransaction();
     try {
-        session.startTransaction();
 
         if (image) {
             const s3bucket = new AWS({
@@ -97,6 +97,7 @@ export const createVehicle = asyncHandler(async (req: Request, res: Response) =>
           if (companies) {
               vehicles.push(companies.vehicles)
           }
+
           await Company.findByIdAndUpdate(company, {vehicles: vehicles.flat()}, opts);
 
           await session.commitTransaction();

@@ -214,7 +214,7 @@ export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 // @Method POST
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
   const session = await startSession();
-const opts = { session, returnOriginal: false };
+  const opts = { session, returnOriginal: false };
   
   try {
     const { email } = req.body;
