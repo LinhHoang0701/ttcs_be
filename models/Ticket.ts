@@ -43,7 +43,7 @@ const TicketSchema = new mongoose.Schema({
         ref: "Company"
     },
     vehicle: {
-        type: [mongoose.Types.ObjectId],
+        type: mongoose.Types.ObjectId,
         required: true,
         ref: "Vehicle"
     },

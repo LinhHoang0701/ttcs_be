@@ -115,3 +115,7 @@ export const deleteSeat = asyncHandler(async (req: Request, res: Response) => {
     }
 
 }) 
+
+export const searchSeat = asyncHandler(async (req: Request, res: Response) => {
+    
+})
