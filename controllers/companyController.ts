@@ -66,9 +66,8 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
 
     session.startTransaction();
     try {
-
         if (image) {
-            const s3bucket = new AWS({
+            const s3bucket =  new AWS({
                 accessKeyId: process.env.AWS_ACCESS_KEY_ID,
                 secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
             });
