@@ -4,6 +4,7 @@ import Route from '../models/Route';
 import Seat from '../models/Seat';
 import Trip from '../models/Trip';
 import { IUserRequest } from '../models/User';
+import Vehicle from '../models/Vehicle';
 
 // @Desc Get All Trips
 // @Route /api/trips/all
@@ -74,11 +75,20 @@ export const getSingle = asyncHandler(async (req: Request, res: Response) => {
 // @Route /api/trips
 // @Method POST
 export const addTrip = asyncHandler(async (req: IUserRequest, res: Response) => {
+    
     try {
+        const vehicle = await Vehicle.findById(req.body.vehicle); 
+
+        if (vehicle) {
+           await vehicle.updateOne({isCreatedTrip: true});
+        } else {
+            throw new Error("Vehicle not found")
+        }
+
         const trip = await Trip.create(req.body);
-    res.status(201).json(trip);
+        res.status(201).json(trip);
     } catch (error: any) {
-        throw new Error(error);        
+        res.status(400).json({ error: error})
     }
 
 })

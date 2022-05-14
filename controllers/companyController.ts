@@ -14,7 +14,14 @@ export const getAll = asyncHandler(async (req: Request, res: Response) => {
     const pageSize = 4;
     const page = Number(req.query.pageNumber) || 1;
     const count = await Company.countDocuments();
-    const companies = await Company.find({}).populate('station', 'name').populate('vehicles', 'name guestCapacity').limit(pageSize).skip(pageSize * (page - 1));
+    const companies = await Company.find({})
+    .populate('station', 'name')
+    .populate({
+        path: 'vehicles',
+        select: 'name guestCapacity isCreatedTrip',
+    })
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
     res.status(200).json({  
         companies,
         page,

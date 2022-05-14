@@ -6,6 +6,7 @@ export interface IVehicle {
     guestCapacity: number;
     imageUrl: String;
     imageKey: String;
+    isCreatedTrip: boolean;
     createdAt: Date,
     updatedAt: Date
 }
@@ -32,6 +33,12 @@ const VehicleSchema = new mongoose.Schema({
     imageKey: {
         type: String,
         required: false
+    },
+    
+    isCreatedTrip: {
+        type: Boolean,
+        required: false,
+        default: false
     }
 }, {
     timestamps: true
