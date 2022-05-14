@@ -15,7 +15,7 @@ export const getAll = asyncHandler(async(req: Request, res: Response) => {
 
     const count = await Trip.countDocuments();
 
-    const trips = await Trip.find({}).limit(pageSize).populate('vehicle', 'name').skip(pageSize * (page - 1));
+    const trips = await Trip.find({}).limit(pageSize).populate('vehicle', 'name guestCapacity').skip(pageSize * (page - 1));
     res.status(201).json({
         trips,
         page,
@@ -73,7 +73,6 @@ export const getSingle = asyncHandler(async (req: Request, res: Response) => {
 // @Route /api/trips
 // @Method POST
 export const addTrip = asyncHandler(async (req: IUserRequest, res: Response) => {
-
     try {
         const trip = await Trip.create(req.body);
     res.status(201).json(trip);

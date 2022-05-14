@@ -14,6 +14,7 @@ export interface ITrip extends mongoose.Document {
     startTime: Date,
     price: Number,
     vehicle: String,
+    company: String,
     guestCapacity: Number,
     ratings?: Number,
     numOfReviews?: Number,
@@ -48,6 +49,11 @@ const TripSchema = new mongoose.Schema({
     guestCapacity: {
         type: Number,
         required: true,
+    },
+    company: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Company',
+        required: false
     },
 
     ratings: {
