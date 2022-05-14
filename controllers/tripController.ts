@@ -35,6 +35,7 @@ export const searchTrips = asyncHandler(async(req: Request, res: Response) => {
 
     const filterd = await Trip
     .find({})
+    .populate('vehicle', 'name')
     .where('from').equals(from)
     .where('to').equals(to)
     .where('startTime').lte(startTime)
