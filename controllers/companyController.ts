@@ -107,14 +107,14 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
             message: "Company created",
             data: company
         });
-    } catch (err: any) {
+    } catch (err) {
 
         await session.abortTransaction();
         session.endSession();
         console.log(err);
         
         res.status(400).json({
-          error: err.errors,
+          error: err,
         });
     }
 });
