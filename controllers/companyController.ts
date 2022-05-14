@@ -107,14 +107,14 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
             message: "Company created",
             data: company
         });
-    } catch (err) {
+    } catch (err: any) {
 
         await session.abortTransaction();
         session.endSession();
         console.log(err);
         
         res.status(400).json({
-          error: "Your request could not be processed. Please try again.",
+          error: err.errors,
         });
     }
 });

@@ -15,7 +15,7 @@ export const getAll = asyncHandler(async(req: Request, res: Response) => {
 
     const count = await Trip.countDocuments();
 
-    const trips = await Trip.find({}).limit(pageSize).populate('vehicle', 'name guestCapacity').populate('company name description').skip(pageSize * (page - 1));
+    const trips = await Trip.find({}).limit(pageSize).populate('vehicle', 'name guestCapacity').skip(pageSize * (page - 1));
     res.status(201).json({
         trips,
         page,
@@ -36,6 +36,7 @@ export const searchTrips = asyncHandler(async(req: Request, res: Response) => {
     const filterd = await Trip
     .find({})
     .populate('vehicle', 'name')
+    .populate('company name description')
     .where('from').equals(from)
     .where('to').equals(to)
     .where('startTime').lte(startTime)
