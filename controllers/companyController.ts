@@ -89,7 +89,6 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
         });
 
         await company.save();
-        console.log(company);
     
         if (company) {
             let stations = await Station.findById(station);
@@ -112,7 +111,8 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
 
         await session.abortTransaction();
         session.endSession();
-    
+        console.log(err);
+        
         res.status(400).json({
           error: "Your request could not be processed. Please try again.",
         });

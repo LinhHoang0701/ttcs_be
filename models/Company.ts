@@ -35,12 +35,13 @@ const CompanySchema = new mongoose.Schema({
     vehicles: {
         type: [mongoose.Types.ObjectId],
         ref: 'Vehicle',
-        required: true
+        required: false
     },
     
     imageUrl: {
         type: String,
-        required: false
+        required: false,
+        default: 'https://www.sustainable-bus.com/wp-content/uploads/2020/07/20C0355_01-1.jpg'
     },
 
     imageKey: {
