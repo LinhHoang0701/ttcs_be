@@ -230,14 +230,14 @@ export const searchVehicle = asyncHandler(async (req: Request, res: Response) =>
 
         
         const count = vehicles.length;
-
         res.status(200).json({
             vehicles,
             page,
             pages: Math.ceil(count / pageSize),
             count
           })
-    } catch (error: any) {
+    }
+    catch (error: any) {
         res.status(400).json({ error: error.message})
     }
 })
