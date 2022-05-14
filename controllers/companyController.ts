@@ -88,8 +88,8 @@ export const createCompany = asyncHandler(async (req: Request, res: Response) =>
             imageKey
         });
 
+        await company.save();
         console.log(company);
-        await company.save(opts);
     
         if (company) {
             let stations = await Station.findById(station);

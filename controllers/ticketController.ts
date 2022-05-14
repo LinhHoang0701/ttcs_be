@@ -75,7 +75,7 @@ export const getAll = asyncHandler(async (req: Request, res: Response) => {
     const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
     const count = await Ticket.countDocuments();
-    const bookings = await Ticket.find({}).populate("user", "name email").populate('seat', 'sku status').populate('trip', 'from to startTime price').limit(pageSize).skip(pageSize * (page - 1));
+    const bookings = await Ticket.find({}).populate("user", "name email").populate('seat', 'sku status type').populate('trip', 'from to startTime price').limit(pageSize).skip(pageSize * (page - 1));
     res.status(201).json({
         bookings,
         page,
