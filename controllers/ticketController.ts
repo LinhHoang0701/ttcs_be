@@ -19,6 +19,10 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
     const opts = { session, returnOriginal: false };
     const { trip, seat, amountPaid, paymentInfo, vehicle, company } = req.body;
 
+    const seats: any = await Seat.find({_id: seat});
+    
+    const isBookingSeat = seats.some((seat: any) => seat.status === true);
+    
     let booking;
 
     session.startTransaction();
@@ -52,16 +56,21 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
             }
         }
 
-        await session.commitTransaction();
-        session.endSession();
+        if (!isBookingSeat) {
+            await session.commitTransaction();
+            session.endSession();
+        } else {
+            throw new Error("Seat has been booked! Please choose another seat.")
+        }
 
         res.status(201).json(booking);
-    } catch (error) {
+    } catch (error: any) {
 
         await session.abortTransaction();
         session.endSession();
+        
         console.log(error);
-        res.status(400).json(error)
+        res.status(400).json(error.message)
     }
 })
 
