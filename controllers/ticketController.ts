@@ -70,7 +70,12 @@ export const newBooking = asyncHandler(async (req: IUserRequest, res: Response) 
 // @Method GET
 export const myBookings = asyncHandler(async (req: IUserRequest, res: Response) => {
 
-    const bookings = await Ticket.find({ user: req.user._id }).populate("user", "name email").populate("trip", "from to startTime guestCapacity").populate("seat", "sku type");
+    const bookings = await Ticket.find({ user: req.user._id })
+    .populate("user", "name email")
+    .populate("trip", "from to startTime guestCapacity")
+    .populate("seat", "sku type")
+    .populate("company", "name")
+    .populate("vehicle", "name");
 
     if(!bookings) {
         res.status(401);
@@ -88,7 +93,11 @@ export const getAll = asyncHandler(async (req: Request, res: Response) => {
     const pageSize = 10;
     const page = Number(req.query.pageNumber) || 1;
     const count = await Ticket.countDocuments();
-    const bookings = await Ticket.find({}).populate("user", "name email").populate('seat', 'sku status type').populate('trip', 'from to startTime price').limit(pageSize).skip(pageSize * (page - 1));
+    const bookings = await Ticket.find({})
+    .populate("user", "name email")
+    .populate('seat', 'sku status type')
+    .populate('trip', 'from to startTime price')
+    .limit(pageSize).skip(pageSize * (page - 1));
     res.status(201).json({
         bookings,
         page,
