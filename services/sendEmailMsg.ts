@@ -1,11 +1,18 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
-import {confirmResetPasswordEmail, contactEmail, newsletterSubscriptionEmail, resetEmail, signupEmail, tripConfirmationEmail} from "../config/templatesEmail";
+import {
+  confirmResetPasswordEmail,
+  contactEmail,
+  newsletterSubscriptionEmail,
+  resetEmail,
+  signupEmail,
+  tripConfirmationEmail,
+} from "../config/templatesEmail";
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "bookingbuskma@gmail.com",
-    pass: "Hoanglinh123..",
+    pass: "Minhduc123..",
   },
 });
 
@@ -14,7 +21,12 @@ interface Message {
   text: any;
 }
 
-export const sendEmail = async (email: String, type: String, host: String, data: any = undefined) => {
+export const sendEmail = async (
+  email: String,
+  type: String,
+  host: String,
+  data: any = undefined
+) => {
   try {
     const message = prepareTemplate(type, host, data);
     const config: any = {
@@ -25,7 +37,7 @@ export const sendEmail = async (email: String, type: String, host: String, data:
     };
     return await transporter.sendMail(config);
   } catch (error: any) {
-    throw new Error(error)
+    throw new Error(error);
   }
 };
 
@@ -39,22 +51,6 @@ const prepareTemplate = (type: String, host: String, data: any) => {
 
     case "reset-confirmation":
       message = confirmResetPasswordEmail();
-      break;
-
-    case "signup":
-      message = signupEmail(data);
-      break;
-
-    case "newsletter-subscription":
-      message = newsletterSubscriptionEmail();
-      break;
-
-    case "contact":
-      message = contactEmail();
-      break;
-
-    case "trip-confirmation":
-      message = tripConfirmationEmail(data);
       break;
 
     default:

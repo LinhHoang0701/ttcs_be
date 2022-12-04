@@ -1,56 +1,56 @@
-import { Request, Response } from 'express';
-import asyncHandler from 'express-async-handler';
-import { startSession } from 'mongoose';
-import Company from '../models/Company';
-import Vehicle, { IVehicle } from '../models/Vehicle';
+import { Request, Response } from "express";
+import asyncHandler from "express-async-handler";
+import { startSession } from "mongoose";
+import Company from "../models/Company";
+import Vehicle, { IVehicle } from "../models/Vehicle";
 const AWS = require("aws-sdk/clients/s3");
 
-
-// @Desc Get all vehicles 
+// @Desc Get all vehicles
 // @Route /api/vehicles/all
 // @Method GET
 export const getAll = asyncHandler(async (req: Request, res: Response) => {
-
-    const pageSize = 10;
-    const page = Number(req.query.pageNumber) || 1;
-    const count = await Vehicle.countDocuments();
-    const vehicles = await Vehicle.find({}).populate('company', 'name').limit(pageSize).skip(pageSize * (page - 1));
-    res.status(201).json({  
-        vehicles,
-        page,
-        pages: Math.ceil(count / pageSize),
-        count
-    });
-  
-})
+  const pageSize = 10;
+  const page = Number(req.query.pageNumber) || 1;
+  const count = await Vehicle.countDocuments();
+  const vehicles = await Vehicle.find({})
+    .populate("company", "name")
+    .limit(pageSize)
+    .skip(pageSize * (page - 1));
+  res.status(201).json({
+    vehicles,
+    page,
+    pages: Math.ceil(count / pageSize),
+    count,
+  });
+});
 
 // @Desc Get Vehicle
 // @Route /api/vehicles
 // @Method GET
 export const getVehicle = asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    try {
-        const vehicle = await Vehicle.findById(id);
-        res.status(200).json({  
-            vehicle,
-        });
-    } catch (error: any) {
-        throw new Error(error)
-    }
-  
-})
+  try {
+    const vehicle = await Vehicle.findById(id);
+    res.status(200).json({
+      vehicle,
+    });
+  } catch (error: any) {
+    throw new Error(error);
+  }
+});
 
 // @Desc create vehicle
 // @Route /api/vehicles
 // @Method POST
-export const createVehicle = asyncHandler(async (req: Request, res: Response) => {
+export const createVehicle = asyncHandler(
+  async (req: Request, res: Response) => {
     const { name, company, guestCapacity } = req.body;
 
     let vehicles = [];
 
     const image = req.file;
-   
+
     let imageUrl = "";
     let imageKey = "";
 
@@ -59,74 +59,79 @@ export const createVehicle = asyncHandler(async (req: Request, res: Response) =>
 
     session.startTransaction();
     try {
-
-        if (image) {
-            const s3bucket = new AWS({
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            });
-
-            const params = {
-                Bucket: process.env.AWS_BUCKET_NAME,
-                Key: image.originalname,
-                Body: image.buffer,
-                ContentType: image.mimetype,
-                ACL: "public-read",
-            };
-            const s3Upload = await s3bucket.upload(params).promise();
-
-            imageUrl = s3Upload.Location;
-            imageKey = s3Upload.key;
-        }
-
-        const vehicle = new Vehicle({
-            name,
-            company,
-            guestCapacity,
-            imageUrl,
-            imageKey
-          });
-      
-          if (vehicle) {
-              vehicles.push(vehicle._id);
-          }
-          await vehicle.save(opts);
-      
-          let companies = await Company.findById(company);
-      
-          if (companies) {
-              vehicles.push(companies.vehicles)
-          }
-
-          await Company.findByIdAndUpdate(company, {vehicles: vehicles.flat()}, opts);
-
-          await session.commitTransaction();
-          session.endSession();
-        
-          res.status(201).json({
-              message: "Vehicle created",
-              data: vehicle
-          });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-    
-        res.status(400).json({
-          error: "Your request could not be processed. Please try again.",
+      if (image) {
+        const s3bucket = new AWS({
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         });
+
+        const params = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: image.originalname,
+          Body: image.buffer,
+          ContentType: image.mimetype,
+          ACL: "public-read",
+        };
+        const s3Upload = await s3bucket.upload(params).promise();
+
+        imageUrl = s3Upload.Location;
+        imageKey = s3Upload.key;
+      }
+
+      const vehicle = new Vehicle({
+        name,
+        company,
+        guestCapacity,
+        imageUrl,
+        imageKey,
+      });
+
+      if (vehicle) {
+        vehicles.push(vehicle._id);
+      }
+      await vehicle.save(opts);
+
+      let companies = await Company.findById(company);
+
+      if (companies) {
+        vehicles.push(companies.vehicles);
+      }
+
+      await Company.findByIdAndUpdate(
+        company,
+        { vehicles: vehicles.flat() },
+        opts
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(201).json({
+        message: "Vehicle created",
+        data: vehicle,
+      });
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+
+      res.status(400).json({
+        error: "Your request could not be processed. Please try again.",
+      });
     }
-});
+  }
+);
 
 // @Desc update vehicle
 // @Route /api/vehicles
 // @Method PUT
 
-export const updateVehicle = asyncHandler(async (req: Request, res: Response) => {
+export const updateVehicle = asyncHandler(
+  async (req: Request, res: Response) => {
     const { name, company, guestCapacity } = req.body;
     const { id } = req.params;
 
     const image = req.file;
-   
+
     let imageUrl = "";
     let imageKey = "";
 
@@ -134,111 +139,125 @@ export const updateVehicle = asyncHandler(async (req: Request, res: Response) =>
     const opts = { session, returnOriginal: false };
 
     try {
-        session.startTransaction();
+      session.startTransaction();
 
-        if (image) {
-            const s3bucket = new AWS({
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-            });
-
-            const params = {
-                Bucket: process.env.AWS_BUCKET_NAME,
-                Key: image.originalname,
-                Body: image.buffer,
-                ContentType: image.mimetype,
-                ACL: "public-read",
-            };
-            const s3Upload = await s3bucket.upload(params).promise();
-
-            imageUrl = s3Upload.Location;
-            imageKey = s3Upload.key;
-        }
-
-        const vehicle = await Vehicle.findByIdAndUpdate(id, {
-            name, company, guestCapacity,imageUrl,imageKey
-        }, { new: true, opts });
-
-        await session.commitTransaction();
-          session.endSession();
-    
-        res.status(201).json({
-            vehicle
+      if (image) {
+        const s3bucket = new AWS({
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         });
+
+        const params = {
+          Bucket: process.env.AWS_BUCKET_NAME,
+          Key: image.originalname,
+          Body: image.buffer,
+          ContentType: image.mimetype,
+          ACL: "public-read",
+        };
+        const s3Upload = await s3bucket.upload(params).promise();
+
+        imageUrl = s3Upload.Location;
+        imageKey = s3Upload.key;
+      }
+
+      const vehicle = await Vehicle.findByIdAndUpdate(
+        id,
+        {
+          name,
+          company,
+          guestCapacity,
+          imageUrl,
+          imageKey,
+        },
+        { new: true, opts }
+      );
+
+      await session.commitTransaction();
+      session.endSession();
+
+      res.status(201).json({
+        vehicle,
+      });
     } catch (err: any) {
-        await session.abortTransaction();
-        session.endSession();
-    
-        res.status(400).json({
-          error: "Your request could not be processed. Please try again.",
-        });
+      await session.abortTransaction();
+      session.endSession();
+
+      res.status(400).json({
+        error: "Your request could not be processed. Please try again.",
+      });
     }
-})
+  }
+);
 
 // @Desc Delete Vehicle
 // @Route /api/vehicles
 // @Method DELETE
-export const deleteVehicle = asyncHandler(async (req: Request, res: Response) => {
+export const deleteVehicle = asyncHandler(
+  async (req: Request, res: Response) => {
     const { id } = req.params;
 
     try {
-        await Vehicle.findByIdAndDelete(id);
+      await Vehicle.findByIdAndDelete(id);
 
-        res.status(200).end();
+      res.status(200).end();
     } catch (error: any) {
-        throw new Error(error);
+      throw new Error(error);
     }
+  }
+);
 
-}) 
-
-export const getVehicleByCompanyId = asyncHandler(async (req: Request, res: Response) => {
-    const {companyId} = req.params;
-    const vehicles:any = [];
+export const getVehicleByCompanyId = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { companyId } = req.params;
+    const vehicles: any = [];
     try {
-        const company = await Company.findById(companyId).populate('vehicles', 'name guestCapacity isCreatedTrip');
+      const company = await Company.findById(companyId).populate(
+        "vehicles",
+        "name guestCapacity isCreatedTrip"
+      );
 
-        if (company) {
-            company?.vehicles.map(vehicle => vehicles.push(vehicle));
-        }
-        else {
-            throw new Error("Wrong company Id");
-        }
+      if (company) {
+        company?.vehicles.map((vehicle) => vehicles.push(vehicle));
+      } else {
+        throw new Error("Wrong company Id");
+      }
 
-        res.status(200).json({vehicles: vehicles});
+      res.status(200).json({ vehicles: vehicles });
     } catch (error: any) {
-        res.status(400).json({error: error.message});
+      res.status(400).json({ error: error.message });
     }
-    
-})
+  }
+);
 
-export const searchVehicle = asyncHandler(async (req: Request, res: Response) => {
+export const searchVehicle = asyncHandler(
+  async (req: Request, res: Response) => {
     const { name, isCreatedTrip } = req.body;
 
     try {
-        const pageSize = 10;
-        const page = Number(req.query.pageNumber) || 1;
-        const vehicles = await Vehicle.find({
-            $and : [
-                {
-                  name: {$regex: name},
-                },
-                {
-                  isCreatedTrip: isCreatedTrip
-                }
-              ]
-        }).limit(pageSize).skip(pageSize * (page - 1))
+      const pageSize = 10;
+      const page = Number(req.query.pageNumber) || 1;
+      const vehicles = await Vehicle.find({
+        $and: [
+          {
+            name: { $regex: name },
+          },
+          {
+            isCreatedTrip: true,
+          },
+        ],
+      })
+        .limit(pageSize)
+        .skip(pageSize * (page - 1));
 
-        
-        const count = vehicles.length;
-        res.status(200).json({
-            vehicles,
-            page,
-            pages: Math.ceil(count / pageSize),
-            count
-          })
+      const count = vehicles.length;
+      res.status(200).json({
+        vehicles,
+        page,
+        pages: Math.ceil(count / pageSize),
+        count,
+      });
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
     }
-    catch (error: any) {
-        res.status(400).json({ error: error.message})
-    }
-})
-
+  }
+);
