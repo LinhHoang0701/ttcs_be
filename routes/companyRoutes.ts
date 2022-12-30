@@ -1,6 +1,13 @@
 import express from "express";
-import { getAll, createCompany, updateCompany, deleteCompany, getCompany, searchCompany } from "../controllers/companyController";
-import { protect, admin } from '../middlewares/authMiddleware';
+import {
+  getAll,
+  createCompany,
+  updateCompany,
+  deleteCompany,
+  getCompany,
+  searchCompany,
+} from "../controllers/companyController";
+import { protect, admin } from "../middlewares/authMiddleware";
 
 const multer = require("multer");
 
@@ -9,11 +16,12 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
-router.route('/all').get(protect, admin, getAll);
-router.route('/:id').get(protect, admin, getCompany);
-router.route('/').post(protect, admin, upload.single("image"), createCompany);
-router.route('/:id').put(protect, admin, updateCompany);
-router.route('/:id').delete(protect, admin, deleteCompany);
-router.route('/search').post(protect, admin, searchCompany);
+router.route("/all").get(protect, admin, getAll);
+router.route("/client").get(protect, getAll);
+router.route("/:id").get(protect, admin, getCompany);
+router.route("/").post(protect, admin, upload.single("image"), createCompany);
+router.route("/:id").put(protect, admin, updateCompany);
+router.route("/:id").delete(protect, admin, deleteCompany);
+router.route("/search").post(protect, admin, searchCompany);
 
 export default router;

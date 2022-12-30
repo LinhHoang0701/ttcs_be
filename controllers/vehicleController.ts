@@ -113,6 +113,7 @@ export const createVehicle = asyncHandler(
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
+      console.log(error);
 
       res.status(400).json({
         error: "Your request could not be processed. Please try again.",

@@ -73,7 +73,7 @@ export const myBookings = asyncHandler(
   async (req: IUserRequest, res: Response) => {
     const bookings = await Ticket.find({ user: req.user._id })
       .populate("user", "name email")
-      .populate("trip", "from to startTime guestCapacity")
+      .populate("trip", "from to startTime guestCapacity price")
       .populate("seat", "sku type vehicle");
     //   .sort((a: any, b: any) => a.createdAt - b.createdAt);
 
@@ -132,6 +132,10 @@ export const deleteBooking = asyncHandler(
 export const getTicketByVehicle = asyncHandler(
   async (req: Request, res: Response) => {
     const vehicle = await Vehicle.findById(req.body.vehicle);
-    console.log(vehicle);
+    try {
+      res.status(201).json(vehicle);
+    } catch (error) {
+      res.status(400).json(error);
+    }
   }
 );
