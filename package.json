@@ -30,6 +30,8 @@
     "aws-sdk": "^2.1130.0",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "cryptojs": "^2.5.3",
     "dotenv": "^14.3.2",
     "express": "^4.17.2",
     "express-async-handler": "^1.2.0",
