@@ -6,7 +6,7 @@ import generateToken from "../utils/generateToken";
 import { sendEmail } from "../services/sendEmailMsg";
 import { startSession } from "mongoose";
 import {
-  encrypt,
+  publicKey,
   formatEncryptOutput,
   formatDecryptOutput,
 } from "../utils/crypto";
@@ -382,7 +382,10 @@ export const getAccount = asyncHandler(
 
       let secureUser = formatEncryptOutput(user);
 
-      res.status(200).json(secureUser);
+      res.status(200).json({
+        publicKey,
+        userInfo: secureUser
+      });
     } catch (error) {
       console.log(error);
       res.send(error);

@@ -1,5 +1,7 @@
 import crypto from "crypto";
 
+//================AES====================
+
 const algorithm = "AES-192-CBC";
 
 /**
@@ -17,10 +19,8 @@ function generateIv(): Buffer {
  *
  * @returns {String}              Encrypted data
  */
-export function encrypt(data: string, secretKey: string): string {
+export function encryptAES(data: string, secretKey: string): string {
   const IV = generateIv();
-  console.log(secretKey);
-
   let encryptionKey = crypto.scryptSync(secretKey, "salt", 24);
   let cipher = crypto.createCipheriv(algorithm, encryptionKey, IV);
   let encrypted = cipher.update(data, "utf8", "hex");
@@ -35,7 +35,7 @@ export function encrypt(data: string, secretKey: string): string {
  *
  * @returns {String}
  */
-export function decrypt(data: string, secretKey: string): string {
+export function decryptAES(data: string, secretKey: string): string {
   const IV = generateIv();
   let encryptionKey = crypto.scryptSync(secretKey, "salt", 24);
   let decipher = crypto.createDecipheriv(algorithm, encryptionKey, IV);
@@ -47,15 +47,76 @@ export function decrypt(data: string, secretKey: string): string {
 export function formatEncryptOutput(data: any): string {
   const userJSON = JSON.stringify(data);
 
-  let secureUser = encrypt(userJSON, data.password);
+  let secureUser = encryptAES(userJSON, data.password);
 
   return secureUser;
 }
 
 export function formatDecryptOutput(response: string, data: any): any {
-  let decryptUser = decrypt(response, data.password);
+  let decryptUser = decryptAES(response, data.password);
 
   return typeof decryptUser === "string"
     ? decryptUser
     : JSON.parse(decryptUser);
+}
+
+//================RSA====================
+
+export const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+  modulusLength: 4096,
+  publicKeyEncoding: {
+    type: "spki",
+    format: "pem",
+  },
+  privateKeyEncoding: {
+    type: "pkcs8",
+    format: "pem",
+    cipher: "aes-256-cbc",
+    passphrase: "top secret",
+  },
+});
+
+export function encryptRSA(data: string): string {
+  const encryptedData = crypto.publicEncrypt(
+    {
+      key: publicKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256",
+    },
+    Buffer.from(data)
+  );
+
+  return encryptedData.toString();
+}
+
+export function decryptRSA(encryptedData: Buffer): any {
+  const decryptedData = crypto.privateDecrypt(
+    {
+      key: privateKey,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: "sha256",
+    },
+    encryptedData
+  );
+
+  return decryptedData;
+}
+
+export function verifyRSA(verifiableData: any): boolean {
+  const signature = crypto.sign("sha256", Buffer.from(verifiableData), {
+    key: privateKey,
+    padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+  });
+
+  const isVerified = crypto.verify(
+    "sha256",
+    Buffer.from(verifiableData),
+    {
+      key: publicKey,
+      padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+    },
+    signature
+  );
+
+  return isVerified;
 }
