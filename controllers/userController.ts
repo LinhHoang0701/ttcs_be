@@ -82,7 +82,10 @@ export const updateProfile = asyncHandler(
 
       const { name } = req.body;
 
-      const decryptInfo = formatDecryptOutput(name, user);
+      const decryptInfo = formatDecryptOutput(
+        name,
+        req.headers.authorization?.split(" ")[1]
+      );
 
       user = await User.findByIdAndUpdate(
         req.user.id,
@@ -391,10 +394,12 @@ export const getAccount = asyncHandler(
         user,
         req.headers.authorization?.split(" ")[1]
       );
-
+      let a = decryptAES(secureUser, req.headers.authorization?.split(" ")[1]);
       res.status(200).json({
         publicKey,
         userInfo: secureUser,
+        token: req.headers.authorization?.split(" ")[1],
+        a,
       });
     } catch (error) {
       console.log(error);
@@ -412,12 +417,11 @@ export const accessPaymentMethod = async (req: Request, res: Response) => {
     let comparePassword = await user?.comparePassword(password);
 
     if (comparePassword) {
-
     }
     res.status(200).json();
   } catch (error) {
     console.log(error);
-    
-    res.send(error)
+
+    res.send(error);
   }
-}
+};

@@ -1,5 +1,5 @@
 import CryptoJS from "crypto-js";
-import crypto from 'crypto';
+import crypto from "crypto";
 
 //================AES====================
 
