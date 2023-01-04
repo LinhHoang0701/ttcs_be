@@ -57,6 +57,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      privateKey: user.password,
       token: generateToken(user._id),
       publicKey,
     });
@@ -401,3 +402,22 @@ export const getAccount = asyncHandler(
     }
   }
 );
+
+export const accessPaymentMethod = async (req: Request, res: Response) => {
+  try {
+    const { password, clientId, publicKey } = req.body;
+
+    let user = await User.findById(clientId);
+
+    let comparePassword = await user?.comparePassword(password);
+
+    if (comparePassword) {
+
+    }
+    res.status(200).json();
+  } catch (error) {
+    console.log(error);
+    
+    res.send(error)
+  }
+}
