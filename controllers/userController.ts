@@ -9,8 +9,8 @@ import {
   formatEncryptOutput,
   formatDecryptOutput,
   decryptAES,
-  encryptAES,
-  publicKey,
+  encryptRSA,
+  verifyRSA,
 } from "../utils/crypto";
 
 // @Desc Register user
@@ -59,7 +59,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       isAdmin: user.isAdmin,
       privateKey: user.password,
       token: generateToken(user._id),
-      publicKey,
     });
   } else {
     res.status(401);
@@ -90,7 +89,7 @@ export const updateProfile = asyncHandler(
       user = await User.findByIdAndUpdate(
         req.user.id,
         {
-          decryptInfo,
+          name: decryptInfo,
         },
         { new: true }
       );
@@ -394,12 +393,9 @@ export const getAccount = asyncHandler(
         user,
         req.headers.authorization?.split(" ")[1]
       );
-      let a = decryptAES(secureUser, req.headers.authorization?.split(" ")[1]);
       res.status(200).json({
-        publicKey,
         userInfo: secureUser,
         token: req.headers.authorization?.split(" ")[1],
-        a,
       });
     } catch (error) {
       console.log(error);
@@ -416,9 +412,23 @@ export const accessPaymentMethod = async (req: Request, res: Response) => {
 
     let comparePassword = await user?.comparePassword(password);
 
+    let isVerify = false;
+
     if (comparePassword) {
+      const encryptRsa = encryptRSA(password);
+
+      isVerify = verifyRSA(encryptRsa);
+    } else {
+      throw new Error("Passwords do not match");
     }
-    res.status(200).json();
+
+    if (isVerify) {
+      res
+        .status(200)
+        .json({ success: true, message: "Create payment successfully!" });
+    } else {
+      throw new Error("You don't have permission to access payment method");
+    }
   } catch (error) {
     console.log(error);
 

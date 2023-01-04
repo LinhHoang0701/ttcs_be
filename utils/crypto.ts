@@ -56,17 +56,7 @@ export function formatDecryptOutput(response: string, token: any): any {
 //================RSA====================
 
 export const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
-  modulusLength: 4096,
-  publicKeyEncoding: {
-    type: "spki",
-    format: "pem",
-  },
-  privateKeyEncoding: {
-    type: "pkcs8",
-    format: "pem",
-    cipher: "aes-256-cbc",
-    passphrase: "top secret",
-  },
+  modulusLength: 2048
 });
 
 export function encryptRSA(data: string): string {
@@ -95,7 +85,7 @@ export function decryptRSA(encryptedData: Buffer): any {
   return decryptedData;
 }
 
-export function verifyRSA(verifiableData: any): boolean {
+export function verifyRSA(verifiableData: string): boolean {
   const signature = crypto.sign("sha256", Buffer.from(verifiableData), {
     key: privateKey,
     padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
