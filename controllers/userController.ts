@@ -6,9 +6,11 @@ import generateToken from "../utils/generateToken";
 import { sendEmail } from "../services/sendEmailMsg";
 import { startSession } from "mongoose";
 import {
-  publicKey,
   formatEncryptOutput,
   formatDecryptOutput,
+  decryptAES,
+  encryptAES,
+  publicKey,
 } from "../utils/crypto";
 
 // @Desc Register user
@@ -56,6 +58,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
       email: user.email,
       isAdmin: user.isAdmin,
       token: generateToken(user._id),
+      publicKey,
     });
   } else {
     res.status(401);
@@ -88,14 +91,17 @@ export const updateProfile = asyncHandler(
         { new: true }
       );
 
-      const encryptInfo = formatEncryptOutput({
-        id: user?._id,
-        name: user?.name,
-        email: user?.email,
-        isAdmin: user?.isAdmin,
-        password: user?.password,
-        token: generateToken(user?._id),
-      });
+      const encryptInfo = formatEncryptOutput(
+        {
+          id: user?._id,
+          name: user?.name,
+          email: user?.email,
+          isAdmin: user?.isAdmin,
+          password: user?.password,
+          token: generateToken(user?._id),
+        },
+        req.headers.authorization?.split(" ")[1]
+      );
       res.status(201).json(encryptInfo);
     } catch (err) {
       console.log(err);
@@ -373,18 +379,21 @@ export const searchUser = asyncHandler(async (req: Request, res: Response) => {
 export const getAccount = asyncHandler(
   async (req: IUserRequest, res: Response) => {
     try {
-      const user = await User.findById(req.user._id);
+      const user = await User.findById(req.user._id).select("-password");
 
       if (!user) {
         res.status(400);
         throw new Error("User not found");
       }
 
-      let secureUser = formatEncryptOutput(user);
+      let secureUser = formatEncryptOutput(
+        user,
+        req.headers.authorization?.split(" ")[1]
+      );
 
       res.status(200).json({
         publicKey,
-        userInfo: secureUser
+        userInfo: secureUser,
       });
     } catch (error) {
       console.log(error);

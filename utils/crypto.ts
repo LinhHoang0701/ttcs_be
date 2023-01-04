@@ -1,12 +1,13 @@
-import crypto from "crypto";
+import CryptoJS from "crypto-js";
+import crypto from 'crypto';
 
 //================AES====================
 
-const algorithm = "AES-192-CBC";
+const algorithm = "AES-GCM";
 
 /**
  * Generate an Initialization Vector
- * @returns {Buffer}
+ * @returns {string}
  */
 function generateIv(): Buffer {
   return Buffer.alloc(16, 0);
@@ -20,12 +21,8 @@ function generateIv(): Buffer {
  * @returns {String}              Encrypted data
  */
 export function encryptAES(data: string, secretKey: string): string {
-  const IV = generateIv();
-  let encryptionKey = crypto.scryptSync(secretKey, "salt", 24);
-  let cipher = crypto.createCipheriv(algorithm, encryptionKey, IV);
-  let encrypted = cipher.update(data, "utf8", "hex");
-  encrypted += cipher.final("hex");
-  return encrypted;
+  const encrypted = CryptoJS.AES.encrypt(data, secretKey);
+  return encrypted.toString();
 }
 
 /**
@@ -35,25 +32,21 @@ export function encryptAES(data: string, secretKey: string): string {
  *
  * @returns {String}
  */
-export function decryptAES(data: string, secretKey: string): string {
-  const IV = generateIv();
-  let encryptionKey = crypto.scryptSync(secretKey, "salt", 24);
-  let decipher = crypto.createDecipheriv(algorithm, encryptionKey, IV);
-  let decrypted = decipher.update(data, "hex", "utf8");
-
-  return decrypted + decipher.final("utf8");
+export function decryptAES(data: string, secretKey: any): string {
+  const decrypted = CryptoJS.AES.decrypt(data, secretKey);
+  return decrypted.toString(CryptoJS.enc.Utf8);
 }
 
-export function formatEncryptOutput(data: any): string {
+export function formatEncryptOutput(data: any, token: any): string {
   const userJSON = JSON.stringify(data);
 
-  let secureUser = encryptAES(userJSON, data.password);
+  let secureUser = encryptAES(userJSON, token);
 
   return secureUser;
 }
 
-export function formatDecryptOutput(response: string, data: any): any {
-  let decryptUser = decryptAES(response, data.password);
+export function formatDecryptOutput(response: string, token: any): any {
+  let decryptUser = decryptAES(response, token);
 
   return typeof decryptUser === "string"
     ? decryptUser
