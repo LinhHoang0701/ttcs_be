@@ -432,6 +432,6 @@ export const accessPaymentMethod = async (req: Request, res: Response) => {
   } catch (error) {
     console.log(error);
 
-    res.send(error);
+    res.status(500).send(error);
   }
 };
